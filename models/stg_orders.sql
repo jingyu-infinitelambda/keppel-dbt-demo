@@ -3,7 +3,7 @@ with orders as (
 )
 
 , final as (
-    select * from orders
+    select * exclude(_row) from orders
 )
 
 select * from final

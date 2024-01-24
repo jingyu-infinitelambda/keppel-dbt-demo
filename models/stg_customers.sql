@@ -3,7 +3,7 @@ with customers as (
 )
 
 , final as (
-    select * from customers 
+    select * exclude(_row) from customers 
 )
 
 select * from final

@@ -1,16 +1,9 @@
 with customers as (
-    select * from {{ source('snowflake_sample', 'customer') }}
+    select * from {{ source('snowflake_sample', 'raw_customers') }}
 )
 
 , final as (
-    select 
-        c_custkey as customer_key 
-        , c_name as customer_name
-        , c_nationkey as nation_key 
-        , c_mktsegment as marketing_segment
-        , c_comment as comment 
-
-    from customers 
+    select * exclude(_row) from customers 
 )
 
 select * from final

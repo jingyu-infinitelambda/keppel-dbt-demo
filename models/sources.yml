@@ -2,10 +2,10 @@ version: 2
 
 sources:
   - name: snowflake_sample
-    database: snowflake_sample_data
-    schema: tpch_sf1
+    database: dbt_train_db
+    schema: dbt_train_jaffle_shop
 
     tables:
-      - name: orders 
-      - name: lineitem
-      - name: customer
+      - name: raw_orders 
+      - name: raw_payments
+      - name: raw_customers

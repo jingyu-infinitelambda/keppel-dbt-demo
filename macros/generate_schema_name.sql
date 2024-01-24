@@ -21,7 +21,7 @@
 
       {# add DEV_ prefix to custom schema #}
       {%- else -%}
-            {{ "DEV_" ~  custom_schema_name | trim }}
+            {{ "DEV_" ~ default_schema ~ "_" ~ custom_schema_name | trim }}
       {% endif %}
     {% endif %}
 

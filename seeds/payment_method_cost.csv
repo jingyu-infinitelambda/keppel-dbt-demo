@@ -1,0 +1,5 @@
+payment_method, cost_per_transaction_cents
+credit_card, 5
+coupon, 10
+bank_transfer, 1
+gift_card, 0

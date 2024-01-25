@@ -23,7 +23,7 @@ with orders as (
         , count(1) as cnt_orders 
         
         {% for payment_method in payment_methods %}
-        , sum(case when payment_method = '{{payment_method}}' then amount end) as cnt_orders_{{payment_method}}
+        , count_if(payment_method = '{{payment_method}}') as cnt_orders_{{payment_method}}
         {% endfor %}
 
     from order_payment

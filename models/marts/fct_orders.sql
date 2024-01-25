@@ -9,12 +9,11 @@ with orders as (
 , final as (
     select 
         orders.*
-        , customers.id as customer_id
         , customers.first_name
         , customers.last_name
  
     from orders 
-    left join customers on orders.user_id = customers.id
+    left join customers using (customer_id)
 )
 
 select * from final

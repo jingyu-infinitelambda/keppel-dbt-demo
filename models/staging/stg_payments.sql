@@ -7,6 +7,7 @@ with payments as (
         id as payment_id 
         , order_id
         , amount as amount_cents
+        , {{ cents_to_dollars('amount_cents') }} as amount_dollars
         , payment_method  
     
     from payments 

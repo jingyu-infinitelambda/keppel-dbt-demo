@@ -1,4 +1,15 @@
-{% set payment_methods = ["bank_transfer", "credit_card", "gift_card","coupon"] %}
+{% set payment_methods_query %}
+    select distinct payment_method from {{ ref('stg_payments') }}
+{% endset %}
+
+{% set results = run_query(payment_methods_query) %}
+
+{% if execute %}
+    {# Return the first column #}
+    {% set payment_methods = results.columns[0].values() %}
+{% else %}
+    {% set payment_methods = [] %}
+{% endif %}
 
 with orders as (
     select * from {{ ref('stg_orders') }}

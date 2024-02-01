@@ -3,7 +3,12 @@ with customers as (
 )
 
 , final as (
-    select * exclude(_row) from customers 
+    select 
+        id as customer_id
+        , first_name
+        , last_name
+    
+    from customers 
 )
 
 select * from final

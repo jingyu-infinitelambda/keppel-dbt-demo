@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: fct_orders
+    columns:
+      - name: customer_id
+        tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: order_status
+        tests:
+          - accepted_values:
+              values: ['returned','completed','shipped','placed','return_pending']

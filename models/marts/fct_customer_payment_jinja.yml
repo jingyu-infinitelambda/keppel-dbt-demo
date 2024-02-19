@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: fct_customer_payment_jinja
+    tests:
+      - dbt_utils.expression_is_true:
+          # fill in the appropriate expression here
+          expression: "cnt_orders = CNT_ORDERS_CREDIT_CARD + CNT_ORDERS_COUPON + CNT_ORDERS_BANK_TRANSFER + CNT_ORDERS_GIFT_CARD"

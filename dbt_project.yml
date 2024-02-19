@@ -39,5 +39,9 @@ models:
   my_new_project:
     staging:
       +materialized: view
+      +database: DBT_TRAIN_DB
+      +schema: DBT_TRAIN_JAFFLE_SHOP
     marts:
       +materialized: table
+      +database: DBT_TRAIN_DB
+      +schema: DBT_TRAIN_ANALYTICS

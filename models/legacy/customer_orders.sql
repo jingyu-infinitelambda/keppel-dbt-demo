@@ -61,4 +61,4 @@ join (
 on orders.user_id = customer_order_history.customer_id
 
 left outer join dbt_train_db.dbt_train_jaffle_shop.raw_payments payments
-on orders.id = payments.order_id;
+on orders.id = payments.order_id

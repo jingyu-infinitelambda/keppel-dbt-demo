@@ -1,52 +1,34 @@
 -- import CTE
-with orders as (
-    select * from {{ source('snowflake_sample', 'raw_orders') }}
+with stg_customers as (
+    select
+        customer_id
+        , last_name
+        , first_name 
+        , full_name
+    from {{ ref('stg_customers') }}
 )
 
-, customers as (
-    select * from {{ source('snowflake_sample', 'raw_customers') }}
+, stg_orders as (
+    select
+        order_id
+        , customer_id
+        , order_status
+        , order_date
+        , user_order_seq
+    from {{ ref('stg_orders') }}    
 )
 
-, payments as (
-    select * from {{ source('snowflake_sample', 'raw_payments') }}
+, stg_payments as (
+    select 
+        payment_id
+        , payment_method
+        , order_id 
+        , amount_dollars as order_value_dollars
+
+    from {{ ref('stg_payments') }}
 )
 
 -- logical CTE
-
--- staging customers
-, stg_customers as (
-    select
-        id as customer_id
-        , last_name
-        , first_name 
-        , first_name || ' ' || last_name as full_name
-    from customers
-)
-
--- staging orders
-, stg_orders as (
-    select
-        id as order_id
-        , user_id as customer_id
-        , status as order_status
-        , order_date
-        , row_number()
-            over (partition by user_id order by order_date, id)
-            as user_order_seq
-    from orders    
-)
-
--- staging payments 
-, stg_payments as (
-    select 
-        id as payment_id
-        , payment_method
-        , order_id 
-        , round(amount / 100.0, 2) as order_value_dollars
-
-    from payments 
-)
-
 , customer_order_history as (
     select
         stg_customers.customer_id

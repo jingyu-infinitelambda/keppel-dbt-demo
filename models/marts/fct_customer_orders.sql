@@ -36,10 +36,11 @@ with orders_joined as (
         , customer_order_history.first_order_date
         , customer_order_history.order_count
         , customer_order_history.total_lifetime_value
+        , orders_joined.order_value_dollars
         , orders_joined.order_status
         , orders_joined.payment_id
         , orders_joined.payment_method
-        , orders_joined.order_value_dollars
+
     from orders_joined 
     
     inner join customer_order_history

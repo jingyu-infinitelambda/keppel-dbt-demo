@@ -10,13 +10,13 @@ select
     orders.status as order_status,
     payments.id as payment_id,
     payments.payment_method
-from dbt_train_db.dbt_train_jaffle_shop.raw_orders as orders
+from {{ source('snowflake_sample', 'raw_orders') }} as orders
 
 join (
       select 
         first_name || ' ' || last_name as name, 
         * 
-      from dbt_train_db.dbt_train_jaffle_shop.raw_customers
+      from {{ source('snowflake_sample', 'raw_customers') }}
 ) customers
 on orders.user_id = customers.id
 
@@ -40,18 +40,18 @@ join (
       select 
         row_number() over (partition by user_id order by order_date, id) as user_order_seq,
         *
-      from dbt_train_db.dbt_train_jaffle_shop.raw_orders
+      from {{ source('snowflake_sample', 'raw_orders') }}
     ) a
 
     join ( 
       select 
         first_name || ' ' || last_name as name, 
         * 
-      from dbt_train_db.dbt_train_jaffle_shop.raw_customers
+      from {{ source('snowflake_sample', 'raw_customers') }}
     ) b
     on a.user_id = b.id
 
-    left outer join dbt_train_db.dbt_train_jaffle_shop.raw_payments c
+    left outer join {{ source('snowflake_sample', 'raw_payments') }} c
     on a.id = c.order_id
 
     where a.status NOT IN ('pending') 
@@ -61,5 +61,5 @@ join (
 ) customer_order_history
 on orders.user_id = customer_order_history.customer_id
 
-left outer join dbt_train_db.dbt_train_jaffle_shop.raw_payments payments
+left outer join {{ source('snowflake_sample', 'raw_payments') }} payments
 on orders.id = payments.order_id

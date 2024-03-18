@@ -1,38 +1,27 @@
 -- import CTE
-with base_orders as (
-    select * from {{ source("snowflake_sample", "raw_orders") }}
-),
+with
+    base_orders as (select * from {{ source("snowflake_sample", "raw_orders") }}),
 
-base_customers as (
-    select * from {{ source("snowflake_sample", "raw_customers") }}
-),
+    base_customers as (select * from {{ source("snowflake_sample", "raw_customers") }}),
 
-base_payments as (
-    select * from {{ source("snowflake_sample", "raw_payments") }}
-),
+    base_payments as (select * from {{ source("snowflake_sample", "raw_payments") }}),
 
--- logical CTEs
-customers as (
-        select first_name || ' ' || last_name as name, *
-        from base_customers    
-),
+    -- logical CTEs
+    customers as (select first_name || ' ' || last_name as name, * from base_customers),
 
-a as (
+    a as (
         select
             row_number() over (
                 partition by user_id order by order_date, id
             ) as user_order_seq,
             *
         from base_orders
-),
+    ),
 
-b as (
-                    select first_name || ' ' || last_name as name, *
-                from base_customers
-),
+    b as (select first_name || ' ' || last_name as name, * from base_customers),
 
-customer_order_history as (
-            select
+    customer_order_history as (
+        select
             b.id as customer_id,
             b.name as full_name,
             b.last_name,
@@ -75,42 +64,39 @@ customer_order_history as (
 
         from a
 
-        join b
-            on a.user_id = b.id
+        join b on a.user_id = b.id
 
-        left outer join
-            base_payments c on a.id = c.order_id
+        left outer join base_payments c on a.id = c.order_id
 
         where a.status not in ('pending')
 
         group by b.id, b.name, b.last_name, b.first_name
-),
+    ),
 
--- final CTE
-final as (
-    select
-        orders.id as order_id,
-        orders.user_id as customer_id,
-        customers.last_name,
-        customers.first_name,
-        first_order_date,
-        order_count,
-        total_lifetime_value,
-        round(amount / 100.0, 2) as order_value_dollars,
-        orders.status as order_status,
-        payments.id as payment_id,
-        payments.payment_method
-    from base_orders as orders
+    -- final CTE
+    final as (
+        select
+            orders.id as order_id,
+            orders.user_id as customer_id,
+            customers.last_name,
+            customers.first_name,
+            first_order_date,
+            order_count,
+            total_lifetime_value,
+            round(amount / 100.0, 2) as order_value_dollars,
+            orders.status as order_status,
+            payments.id as payment_id,
+            payments.payment_method
+        from base_orders as orders
 
-    join customers
-        on orders.user_id = customers.id
+        join customers on orders.user_id = customers.id
 
-    join customer_order_history
-        on orders.user_id = customer_order_history.customer_id
+        join
+            customer_order_history
+            on orders.user_id = customer_order_history.customer_id
 
-    left outer join
-        base_payments payments
-        on orders.id = payments.order_id
-)
+        left outer join base_payments payments on orders.id = payments.order_id
+    )
 
-select * from final
+select *
+from final

@@ -1,44 +1,36 @@
 -- import CTE
 with
-    base_orders as (select * from {{ source("snowflake_sample", "raw_orders") }}),
-
-    base_customers as (select * from {{ source("snowflake_sample", "raw_customers") }}),
-
-    base_payments as (select * from {{ source("snowflake_sample", "raw_payments") }}),
-
-    -- logical CTEs
     stg_orders as (
         select 
-            id as order_id,
-            user_id as customer_id,
-            status as order_status,
+            order_id,
+            customer_id,
+            order_status,
             order_date,
-            row_number() over (
-                partition by user_id order by order_date, id
-            ) as user_order_seq
+            user_order_seq
 
-        from base_orders
+        from {{ ref('stg_orders') }}
     ),
 
     stg_customers as (
         select 
-            id as customer_id,
+            customer_id,
             first_name,
             last_name,
-            first_name || ' ' || last_name as full_name
-        from base_customers
+            full_name
+        from {{ ref('stg_customers') }}
     ),
 
     stg_payments as (
         select 
-            id as payment_id,
+            payment_id,
             order_id,
-            round(amount / 100.0, 2) as amount,
+            amount_dollars,
             payment_method
 
-        from base_payments
+        from {{ ref('stg_payments') }}
     ),
 
+    -- logical CTEs
     customer_order_history as (
         select
             stg_customers.customer_id,
@@ -63,14 +55,14 @@ with
             sum(
                 case
                     when stg_orders.order_status not in ('returned', 'return_pending')
-                    then stg_payments.amount
+                    then stg_payments.amount_dollars
                     else 0
                 end
             ) as total_lifetime_value,
             sum(
                 case
                     when stg_orders.order_status not in ('returned', 'return_pending')
-                    then stg_payments.amount
+                    then stg_payments.amount_dollars
                     else 0
                 end
             ) / nullif(
@@ -102,7 +94,7 @@ with
             first_order_date,
             order_count,
             total_lifetime_value,
-            stg_payments.amount as order_value_dollars,
+            stg_payments.amount_dollars as order_value_dollars,
             orders.order_status,
             stg_payments.payment_id,
             stg_payments.payment_method

@@ -110,7 +110,7 @@ with
             stg_payments.payment_method
         from stg_orders
 
-        join stg_customers on stg_orders.customer_id = stg_customers.id
+        join stg_customers on stg_orders.customer_id = stg_customers.customer_id
 
         join
             customer_order_history

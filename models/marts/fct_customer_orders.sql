@@ -20,6 +20,7 @@ with
         select
             id as order_id,
             user_id as customer_id,
+            order_date,
             row_number() over (
                 partition by user_id order by order_date
             ) as user_order_seq,
@@ -30,11 +31,12 @@ with
     stg_payments as (
         select
             id as payment_id,
+            order_id,
             payment_method,
             round(amount / 100.0, 2) as amount
 
         from base_payments
-    )
+    ),
 
     -- logical CTE
     customer_order_history as (
@@ -82,7 +84,7 @@ with
 
         from stg_orders
 
-        join b on stg_orders.customer_id = stg_customers.customer_id
+        join stg_customers on stg_orders.customer_id = stg_customers.customer_id
 
         left outer join stg_payments on stg_orders.order_id = stg_payments.order_id
 
@@ -106,7 +108,7 @@ with
             stg_orders.order_status,
             stg_payments.payment_id,
             stg_payments.payment_method
-        from base_orders as orders
+        from stg_orders
 
         join stg_customers on stg_orders.customer_id = stg_customers.id
 

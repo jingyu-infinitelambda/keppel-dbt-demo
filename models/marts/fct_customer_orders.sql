@@ -1,119 +1,122 @@
-with 
+with
 
--- import CTE
-base_orders as (
-    select * from {{ source("snowflake_sample", "raw_orders") }}
-),
+    -- import CTE
+    base_orders as (select * from {{ source("snowflake_sample", "raw_orders") }}),
 
-base_customers as (
-    select * from {{ source("snowflake_sample", "raw_customers") }}
-),
+    base_customers as (select * from {{ source("snowflake_sample", "raw_customers") }}),
 
-base_payments as (
-    select * from {{ source("snowflake_sample", "raw_payments") }}
-),
+    base_payments as (select * from {{ source("snowflake_sample", "raw_payments") }}),
 
--- logical CTE
-customers as (
-        select first_name || ' ' || last_name as name, *
+    stg_customers as (
+        select 
+            id as customer_id,
+            first_name || ' ' || last_name as full_name,
+            first_name,
+            last_name
         from base_customers
-),
+    ),
 
-a as (
-    select
-        row_number() over (
-            partition by user_id order by order_date, id
-        ) as user_order_seq,
-        *
-    from base_orders
-),
-
-b as (
-    select first_name || ' ' || last_name as name, *
-    from base_customers
-),
-
-customer_order_history as (
+    stg_orders as (
         select
-            b.id as customer_id,
-            b.name as full_name,
-            b.last_name,
-            b.first_name,
+            id as order_id,
+            user_id as customer_id,
+            row_number() over (
+                partition by user_id order by order_date
+            ) as user_order_seq,
+            status as order_status,
+        from base_orders
+    ), 
+
+    stg_payments as (
+        select
+            id as payment_id,
+            payment_method,
+            round(amount / 100.0, 2) as amount
+
+        from base_payments
+    )
+
+    -- logical CTE
+    customer_order_history as (
+        select
+            stg_customers.customer_id,
+            stg_customers.full_name,
+            stg_customers.last_name,
+            stg_customers.first_name,
             min(order_date) as first_order_date,
             min(
                 case
-                    when a.status not in ('returned', 'return_pending') then order_date
+                    when stg_orders.order_status not in ('returned', 'return_pending') then order_date
                 end
             ) as first_non_returned_order_date,
             max(
                 case
-                    when a.status not in ('returned', 'return_pending') then order_date
+                    when stg_orders.order_status not in ('returned', 'return_pending') then order_date
                 end
             ) as most_recent_non_returned_order_date,
             coalesce(max(user_order_seq), 0) as order_count,
             coalesce(
-                count(case when a.status != 'returned' then 1 end), 0
+                count(case when stg_orders.order_status != 'returned' then 1 end), 0
             ) as non_returned_order_count,
             sum(
                 case
-                    when a.status not in ('returned', 'return_pending')
-                    then round(c.amount / 100.0, 2)
+                    when stg_orders.order_status not in ('returned', 'return_pending')
+                    -- staging: payments
+                    then stg_payments.amount
                     else 0
                 end
             ) as total_lifetime_value,
             sum(
                 case
-                    when a.status not in ('returned', 'return_pending')
-                    then round(c.amount / 100.0, 2)
+                    when stg_orders.order_status not in ('returned', 'return_pending')
+                    then stg_payments.amount
                     else 0
                 end
             ) / nullif(
                 count(
-                    case when a.status not in ('returned', 'return_pending') then 1 end
+                    case when stg_orders.order_status not in ('returned', 'return_pending') then 1 end
                 ),
                 0
             ) as avg_non_returned_order_value,
-            array_agg(distinct a.id) as order_ids
+            array_agg(distinct stg_orders.order_id) as order_ids
 
-        from a
+        from stg_orders
 
-        join b
-            on a.user_id = b.id
+        join b on stg_orders.customer_id = stg_customers.customer_id
 
-        left outer join
-            base_payments c on a.id = c.order_id
+        left outer join stg_payments on stg_orders.order_id = stg_payments.order_id
 
-        where a.status not in ('pending')
+        where stg_orders.order_status not in ('pending')
 
-        group by b.id, b.name, b.last_name, b.first_name
-), 
+        group by stg_customers.customer_id, stg_customers.full_name, stg_customers.last_name, stg_customers.first_name
+    ),
 
--- final CTE
-final as (
-    select
-        orders.id as order_id,
-        orders.user_id as customer_id,
-        customers.last_name,
-        customers.first_name,
-        first_order_date,
-        order_count,
-        total_lifetime_value,
-        round(amount / 100.0, 2) as order_value_dollars,
-        orders.status as order_status,
-        payments.id as payment_id,
-        payments.payment_method
-    from base_orders as orders
+    -- final CTE
+    final as (
+        select
+            stg_orders.order_id,
+            stg_orders.customer_id,
+            stg_customers.last_name,
+            stg_customers.first_name,
+            first_order_date,
+            order_count,
+            total_lifetime_value,
+            -- BUG: multiple rows per order_id in raw_payments
+            stg_payments.amount as order_value_dollars,
+            stg_orders.order_status,
+            stg_payments.payment_id,
+            stg_payments.payment_method
+        from base_orders as orders
 
-    join customers
-        on orders.user_id = customers.id
+        join stg_customers on stg_orders.customer_id = stg_customers.id
 
-    join customer_order_history
-        on orders.user_id = customer_order_history.customer_id
+        join
+            customer_order_history
+            on stg_orders.customer_id = customer_order_history.customer_id
 
-    left outer join
-        base_payments payments
-        on orders.id = payments.order_id
-)
+        left outer join stg_payments on stg_orders.order_id = stg_payments.order_id
+    )
 
 -- simple select statement
-select * from final
+select *
+from final

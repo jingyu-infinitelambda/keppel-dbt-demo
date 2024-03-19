@@ -1,41 +1,16 @@
 with
 
     -- import CTE
-    base_orders as (select * from {{ source("snowflake_sample", "raw_orders") }}),
-
-    base_customers as (select * from {{ source("snowflake_sample", "raw_customers") }}),
-
-    base_payments as (select * from {{ source("snowflake_sample", "raw_payments") }}),
-
     stg_customers as (
-        select 
-            id as customer_id,
-            first_name || ' ' || last_name as full_name,
-            first_name,
-            last_name
-        from base_customers
+        select * from {{ ref('stg_customers') }}
     ),
 
     stg_orders as (
-        select
-            id as order_id,
-            user_id as customer_id,
-            order_date,
-            row_number() over (
-                partition by user_id order by order_date
-            ) as user_order_seq,
-            status as order_status,
-        from base_orders
+        select * from {{ ref('stg_orders') }}
     ), 
 
     stg_payments as (
-        select
-            id as payment_id,
-            order_id,
-            payment_method,
-            round(amount / 100.0, 2) as amount
-
-        from base_payments
+        select * from {{ ref('stg_payments') }}
     ),
 
     -- logical CTE
@@ -64,14 +39,14 @@ with
                 case
                     when stg_orders.order_status not in ('returned', 'return_pending')
                     -- staging: payments
-                    then stg_payments.amount
+                    then stg_payments.amount_dollars
                     else 0
                 end
             ) as total_lifetime_value,
             sum(
                 case
                     when stg_orders.order_status not in ('returned', 'return_pending')
-                    then stg_payments.amount
+                    then stg_payments.amount_dollars
                     else 0
                 end
             ) / nullif(
@@ -104,7 +79,7 @@ with
             order_count,
             total_lifetime_value,
             -- BUG: multiple rows per order_id in raw_payments
-            stg_payments.amount as order_value_dollars,
+            stg_payments.amount_dollars as order_value_dollars,
             stg_orders.order_status,
             stg_payments.payment_id,
             stg_payments.payment_method

@@ -24,7 +24,7 @@ metrics:
     type_params:
       numerator:
         name: order_count # metric name
-        filter: "{{ Dimension('orders__status' )}} = 'returned'"
+        filter: "{{ Dimension('order__status' )}} = 'returned'"
       denominator: total_amount # metric name
 
   # DERIVED METRIC
@@ -73,4 +73,4 @@ metrics:
     type_params:
       measure:
         name: order_count # measure name
-        filter: "{{ Dimension('customers__name' )}} ilike '%D%'"
+        filter: "{{ Dimension('customer__name' )}} ilike '%D%'"

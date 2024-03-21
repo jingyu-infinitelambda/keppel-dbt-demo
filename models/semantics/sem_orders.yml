@@ -6,10 +6,11 @@ semantic_models:
     model: ref('fct_orders') ## Required | The name of the dbt model
 
     entities:
-      - name: order_id
+      - name: order
         type: primary ## Required
-      - name: customer_id
-        type: foreign
+        expr: order_id
+      - name: customer
+        type: foreign ## Optional
         expr: customer_id
 
     dimensions: ## Required

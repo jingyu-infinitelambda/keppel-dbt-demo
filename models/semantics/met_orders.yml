@@ -1,0 +1,67 @@
+metrics:
+  # SIMPLE METRIC
+  - name: order_count
+    description: The number of orders
+    type: simple
+    label: "# Orders"
+    type_params:
+      measure:
+        name: order_count # measure name
+
+  # RATIO METRIC
+  - name: order_rate
+    description: Count vs Total Amount
+    type: ratio
+    label: Order Rate
+    type_params:
+      numerator: order_count # metric name
+      denominator: total_amount # metric name
+
+  - name: returned_rate
+    description: Returned Count vs Total Amount
+    type: ratio
+    label: Returned Rate
+    type_params:
+      numerator:
+        name: order_count # metric name
+        filter: "{{ Dimension('orders__status' )}} = 'returned'"
+      denominator: total_amount # metric name
+
+  # DERIVED METRIC
+  - name: order_gross_profit
+    description: Gross profit from each order.
+    type: derived
+    label: Order Gross Profit
+    type_params:
+      expr: revenue - cost
+      metrics:
+        - name: total_amount # metric name
+          alias: revenue
+        - name: total_cost # metric name
+          alias: cost
+
+# CULMULATIVE METRIC
+  - name: customer_rolling_7
+    type: cumulative
+    label: Weekly Active Customers
+    type_params:
+      measure:
+        name: customers_with_orders
+      window: 7 days
+
+    # CONVERSION METRIC: upcoming v1.8  
+    # Sample:
+    # - name: visit_to_buy_conversion_rate_7_day_window
+    #   description: Conversion rate from viewing a page to making a purchase
+    #   type: conversion
+    #   label: Visit to Seller Conversion Rate (7 day window)
+    #   type_params:
+    #     conversion_type_params:
+    #       calculation: conversions
+    #       base_measure:
+    #         name: visits
+    #       conversion_measure: 
+    #         name: buys
+    #         fill_nulls_with: 0
+    #       entity: user
+    #       window: 7 days 

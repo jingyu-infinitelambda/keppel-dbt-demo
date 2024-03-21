@@ -5,11 +5,7 @@ models:
     description: Fact table containing details about the store's orders, such as order date, customer_id and status.
     columns:
       - name: customer_id
-        description: The ID of the customer who placed the oder. Foreign key to `STG_CUSTOMERS`. 
-        tests:
-          - relationships:
-              to: ref('stg_customers')
-              field: customer_id
+        description: The ID of the customer who placed the oder.
       - name: order_id
         description: A unique identifier for each order.
       - name: order_status

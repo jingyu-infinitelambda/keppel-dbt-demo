@@ -40,7 +40,7 @@ metrics:
         - name: total_cost # metric name
           alias: cost
 
-# CULMULATIVE METRIC
+  # CULMULATIVE METRIC
   - name: customer_rolling_7
     type: cumulative
     label: Weekly Active Customers
@@ -49,19 +49,28 @@ metrics:
         name: customers_with_orders
       window: 7 days
 
-    # CONVERSION METRIC: upcoming v1.8  
-    # Sample:
-    # - name: visit_to_buy_conversion_rate_7_day_window
-    #   description: Conversion rate from viewing a page to making a purchase
-    #   type: conversion
-    #   label: Visit to Seller Conversion Rate (7 day window)
-    #   type_params:
-    #     conversion_type_params:
-    #       calculation: conversions
-    #       base_measure:
-    #         name: visits
-    #       conversion_measure: 
-    #         name: buys
-    #         fill_nulls_with: 0
-    #       entity: user
-    #       window: 7 days 
+  # CONVERSION METRIC: upcoming v1.8  
+  # Sample:
+  # - name: visit_to_buy_conversion_rate_7_day_window
+  #   description: Conversion rate from viewing a page to making a purchase
+  #   type: conversion
+  #   label: Visit to Seller Conversion Rate (7 day window)
+  #   type_params:
+  #     conversion_type_params:
+  #       calculation: conversions
+  #       base_measure:
+  #         name: visits
+  #       conversion_measure: 
+  #         name: buys
+  #         fill_nulls_with: 0
+  #       entity: user
+  #       window: 7 days
+
+  # - name: order_count_of_d
+  #   description: "The number of orders placed by customers who has 'D' in name"
+  #   type: simple
+  #   label: "# Orders (D)"
+  #   type_params:
+  #     measure:
+  #       name: order_count # measure name
+  #       filter: "{{ Dimension('customers__name' )}} ilike '%D%'"

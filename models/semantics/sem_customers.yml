@@ -1,0 +1,27 @@
+semantic_models:
+  - name: customers ## Required | The name of the semantic model.
+    defaults: ## Required
+      agg_time_dimension: ds ## Required
+    description: Customer attributes ## Optional
+    model: ref('dim_customers') ## Required | The name of the dbt model
+
+    entities:
+      - name: customer_id
+        type: primary ## Required
+
+    dimensions: ## Required
+      - name: ds
+        expr: created_at
+        type: time
+        type_params:
+          time_granularity: day
+      - name: name
+        expr: concat(first_name, ' ', last_name) 
+        type: categorical
+
+    measures: ## Optional
+      - name: customer_count
+        description: Count of customers
+        expr: 1
+        agg: sum
+        create_metric: true

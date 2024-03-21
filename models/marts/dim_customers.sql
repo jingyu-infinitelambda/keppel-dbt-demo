@@ -18,6 +18,7 @@ with customers as (
         customers.customer_id
         , customers.first_name
         , customers.last_name
+        , sysdate() as created_at
 
     from customers
 )

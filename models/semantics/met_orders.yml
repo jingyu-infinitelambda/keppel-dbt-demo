@@ -66,11 +66,11 @@ metrics:
   #       entity: user
   #       window: 7 days
 
-  # - name: order_count_of_d
-  #   description: "The number of orders placed by customers who has 'D' in name"
-  #   type: simple
-  #   label: "# Orders (D)"
-  #   type_params:
-  #     measure:
-  #       name: order_count # measure name
-  #       filter: "{{ Dimension('customers__name' )}} ilike '%D%'"
+  - name: order_count_of_d
+    description: "The number of orders placed by customers who has 'D' in name"
+    type: simple
+    label: "# Orders (D)"
+    type_params:
+      measure:
+        name: order_count # measure name
+        filter: "{{ Dimension('customers__name' )}} ilike '%D%'"

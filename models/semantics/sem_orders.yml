@@ -13,16 +13,6 @@ semantic_models:
         type: foreign ## Optional
         expr: customer_id
 
-    dimensions: ## Required
-      - name: ds
-        expr: order_date
-        type: time
-        type_params:
-          time_granularity: day
-      - name: status
-        expr: order_status
-        type: categorical
-
     measures: ## Optional
       - name: order_count
         description: Count of orders
@@ -44,3 +34,13 @@ semantic_models:
         agg: count_distinct
         expr: customer_id
         create_metric: true
+
+    dimensions: ## Required
+      - name: ds
+        expr: order_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: status
+        expr: order_status
+        type: categorical

@@ -1,0 +1,18 @@
+# saved_queries:
+#   - name: saved_orders
+#     description: YOUR_DESCRIPTION
+#     query_params:
+#       metrics:
+#         - order_count
+#         - total_amount
+#         - order_rate
+#         - total_cost
+#         - order_gross_profit
+#         - customer_rolling_7
+#       group_by:
+#         - TimeDimension()
+#         - order__status
+#     exports:
+#       - name: export__saved_orders
+#         config:
+#           export_as: table

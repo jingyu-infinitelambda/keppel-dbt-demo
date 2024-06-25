@@ -12,8 +12,8 @@ unit_tests:
           - {status: placed}
     expect:
       rows:
-        - {status: returned}
-        - {status: completed}
-        - {status: returned}
-        - {status: shipped}
-        - {status: placed}
+        - {order_status: returned}
+        - {order_status: completed}
+        - {order_status: returned}
+        - {order_status: shipped}
+        - {order_status: placed}

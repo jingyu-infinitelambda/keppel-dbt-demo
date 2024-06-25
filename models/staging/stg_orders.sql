@@ -7,7 +7,7 @@ with orders as (
         id as order_id
         , user_id as customer_id
         , case 
-            when status like '%return%' then 'return'
+            when status like '%return%' then 'returned'
             else status  
           end as order_status
         , order_date

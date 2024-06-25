@@ -1,0 +1,19 @@
+unit_tests:
+  - name: test_order_status
+    description: Check order status mapping
+    model: stg_orders
+    given:
+      - input: source('snowflake_sample', 'raw_orders')
+        rows:
+          - {status: returned}
+          - {status: completed}
+          - {status: return_pending}
+          - {status: shipped}
+          - {status: placed}
+    expect:
+      rows:
+        - {status: returned}
+        - {status: completed}
+        - {status: returned}
+        - {status: shipped}
+        - {status: placed}
